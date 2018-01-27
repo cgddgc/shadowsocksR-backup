@@ -1,0 +1,57 @@
+#!/bin/bash
+#description:ssr
+#chkconfig:2345 66 66
+. /etc/rc.d/init.d/functions
+EXEC=ssr
+DAEMON=python2.6
+PID_FILE=/var/run/ssr.pid 
+
+start() 
+{
+    /root/ssr/logrun.sh
+    netstat -lnpt|grep python2.6|tail -1|awk {'print $7'}|awk -F "/" {'print $1'}>$PID_FILE
+}
+
+stop() 
+{
+    /root/ssr/stop.sh
+    >$PID_FILE
+}
+
+status() 
+{
+   netstat -lnpt|grep python2.6|tail -1|awk {'print $7'}|awk -F "/" {'print $1'}>$PID_FILE
+    if [ -s $PID_FILE ]; then
+   	ps aux|grep $(netstat -lnpt|grep python2.6|tail -1|awk {'print $7'}|awk -F "/" {'print $1'})|head -n 1
+        echo "Listening Port:"
+	netstat -lnpt|grep python2.6
+else 
+echo "ssr service stoped,try 'service ssr start'"
+fi
+}
+
+restart()
+{
+    stop
+    start
+}
+
+case "$1" in 
+    start) 
+        start 
+        ;; 
+    stop) 
+        stop 
+        ;; 
+    restart) 
+        restart 
+        ;; 
+    status) 
+        status
+        ;; 
+    *) 
+        echo "Usage: service $EXEC {start|stop|restart|status}" 
+        exit 1 
+esac 
+ 
+exit $?
